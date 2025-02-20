@@ -1,0 +1,36 @@
+public class HillCipher {
+    private static int[][] generateKeyMatrix(String key) {
+        int size = (int) Math.sqrt(key.length());
+        int[][] keyMatrix = new int[size][size];
+        for (int i = 0; i < key.length(); i++) {
+            keyMatrix[i / size][i % size] = key.charAt(i) - 'a';
+        }
+        return keyMatrix;
+    }
+
+    private static String encrypt(String plaintext, String key) {
+        int[][] keyMatrix = generateKeyMatrix(key);
+        StringBuilder ciphertext = new StringBuilder();
+        for (int i = 0; i < plaintext.length(); i += 2) {
+            int[] block = new int[2];
+            block[0] = plaintext.charAt(i) - 'a';
+            block[1] = (i + 1 < plaintext.length()) ? plaintext.charAt(i + 1) - 'a' : 0;
+
+            int[] encryptedBlock = new int[2];
+            for (int j = 0; j < 2; j++) {
+                encryptedBlock[j] = (keyMatrix[j][0] * block[0] + keyMatrix[j][1] * block[1]) % 26;
+            }
+
+            ciphertext.append((char) (encryptedBlock[0] + 'a'));
+            ciphertext.append((char) (encryptedBlock[1] + 'a'));
+        }
+        return ciphertext.toString();
+    }
+
+    public static void main(String[] args) {
+        String plaintext = "hillcipher";
+        String key = "gybnqkurp";
+        String encrypted = encrypt(plaintext, key);
+        System.out.println("Encrypted: " + encrypted);
+    }
+}
