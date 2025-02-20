@@ -1,0 +1,42 @@
+import java.security.*;
+import java.util.Base64;
+
+public class DigitalSignatureExample {
+    public static String generateSignature(String data, PrivateKey privateKey) throws Exception {
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initSign(privateKey);
+        signature.update(data.getBytes());
+        byte[] signedData = signature.sign();
+        return Base64.getEncoder().encodeToString(signedData);
+    }
+
+    public static boolean verifySignature(String data, String signatureStr, PublicKey publicKey) throws Exception {
+        byte[] signatureBytes = Base64.getDecoder().decode(signatureStr);
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initVerify(publicKey);
+        signature.update(data.getBytes());
+        return signature.verify(signatureBytes);
+    }
+
+    public static void main(String[] args) {
+        try {
+            // Generate RSA Key Pair
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            // Original message
+            String data = "This is a secure message.";
+
+            // Sign the message
+            String signedData = generateSignature(data, keyPair.getPrivate());
+            System.out.println("Signed Data: " + signedData);
+
+            // Verify the signature
+            boolean isVerified = verifySignature(data, signedData, keyPair.getPublic());
+            System.out.println("Is Signature Verified? " + isVerified);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
