@@ -1,0 +1,23 @@
+import java.security.MessageDigest;
+
+public class SHA1Example {
+    public static String generateSHA1(String input) throws Exception {
+        MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+        byte[] hashBytes = sha1.digest(input.getBytes());
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : hashBytes) {
+            hexString.append(Integer.toHexString(0xFF & b));
+        }
+        return hexString.toString();
+    }
+
+    public static void main(String[] args) {
+        try {
+            String input = "Hello, SHA-1!";
+            String hash = generateSHA1(input);
+            System.out.println("SHA-1 Hash: " + hash);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
