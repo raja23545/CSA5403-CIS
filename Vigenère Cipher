@@ -1,0 +1,31 @@
+public class VigenereCipher {
+    private static String generateKey(String text, String key) {
+        StringBuilder keyBuilder = new StringBuilder(key);
+        for (int i = key.length(); i < text.length(); i++) {
+            keyBuilder.append(key.charAt(i % key.length()));
+        }
+        return keyBuilder.toString();
+    }
+
+    public static String encrypt(String text, String key) {
+        StringBuilder encryptedText = new StringBuilder();
+        key = generateKey(text, key);
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (Character.isLetter(c)) {
+                char base = Character.isLowerCase(c) ? 'a' : 'A';
+                encryptedText.append((char) ((c - base + key.charAt(i) - 'a') % 26 + base));
+            } else {
+                encryptedText.append(c);
+            }
+        }
+        return encryptedText.toString();
+    }
+
+    public static void main(String[] args) {
+        String plaintext = "Hello World";
+        String key = "key";
+        String encrypted = encrypt(plaintext, key);
+        System.out.println("Encrypted: " + encrypted);
+    }
+}
