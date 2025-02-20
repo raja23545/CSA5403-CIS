@@ -1,41 +1,190 @@
-import java.security.*;
-import javax.crypto.Cipher;
-import java.util.Base64;
-
-public class RSAExample {
-    public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(2048);  // 2048-bit key size
-        return keyPairGenerator.generateKeyPair();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSA Encryption/Decryption</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
     }
 
-    public static String encrypt(String data, PublicKey publicKey) throws Exception {
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        byte[] encryptedData = cipher.doFinal(data.getBytes());
-        return Base64.getEncoder().encodeToString(encryptedData);
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    public static String decrypt(String encryptedData, PrivateKey privateKey) throws Exception {
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        byte[] decodedData = Base64.getDecoder().decode(encryptedData);
-        byte[] decryptedData = cipher.doFinal(decodedData);
-        return new String(decryptedData);
+    h1 {
+      text-align: center;
+      color: #333;
     }
 
-    public static void main(String[] args) {
-        try {
-            KeyPair keyPair = generateKeyPair();
-            String originalData = "Hello RSA Encryption!";
-            
-            String encryptedData = encrypt(originalData, keyPair.getPublic());
-            System.out.println("Encrypted: " + encryptedData);
-
-            String decryptedData = decrypt(encryptedData, keyPair.getPrivate());
-            System.out.println("Decrypted: " + decryptedData);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    label {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 5px;
+      display: block;
     }
-}
+
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    h3 {
+      margin-top: 20px;
+      color: #333;
+    }
+
+    p {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>RSA Encryption/Decryption</h1>
+
+    <label for="inputText">Text to Encrypt:</label>
+    <input type="text" id="inputText" value="Hello RSA!">
+
+    <label for="publicKey">Public Key:</label>
+    <textarea id="publicKey" readonly></textarea>
+
+    <label for="privateKey">Private Key:</label>
+    <textarea id="privateKey" readonly></textarea>
+
+    <button onclick="generateKeys()">Generate RSA Keys</button>
+    <button onclick="encryptText()">Encrypt Text</button>
+    <button onclick="decryptText()">Decrypt Text</button>
+
+    <h3>Encrypted Text:</h3>
+    <p id="encryptedText"></p>
+
+    <h3>Decrypted Text:</h3>
+    <p id="decryptedText"></p>
+  </div>
+
+  <script>
+    async function generateKeys() {
+      const keys = await window.crypto.subtle.generateKey(
+        {
+          name: "RSA-OAEP",
+          modulusLength: 2048,
+          publicExponent: new Uint8Array([1, 0, 1]),
+          hash: "SHA-256",
+        },
+        true,
+        ["encrypt", "decrypt"]
+      );
+
+      const publicKey = await window.crypto.subtle.exportKey("pem", keys.publicKey);
+      const privateKey = await window.crypto.subtle.exportKey("pem", keys.privateKey);
+
+      document.getElementById("publicKey").value = publicKey;
+      document.getElementById("privateKey").value = privateKey;
+    }
+
+    async function encryptText() {
+      const text = document.getElementById("inputText").value;
+      const encoder = new TextEncoder();
+      const data = encoder.encode(text);
+
+      const publicKeyPem = document.getElementById("publicKey").value;
+      const publicKey = await importKey(publicKeyPem);
+
+      const encryptedData = await window.crypto.subtle.encrypt(
+        { name: "RSA-OAEP" },
+        publicKey,
+        data
+      );
+
+      const encryptedBase64 = arrayBufferToBase64(encryptedData);
+      document.getElementById("encryptedText").textContent = encryptedBase64;
+    }
+
+    async function decryptText() {
+      const encryptedText = document.getElementById("encryptedText").textContent;
+      const encryptedData = base64ToArrayBuffer(encryptedText);
+
+      const privateKeyPem = document.getElementById("privateKey").value;
+      const privateKey = await importKey(privateKeyPem, true);
+
+      const decryptedData = await window.crypto.subtle.decrypt(
+        { name: "RSA-OAEP" },
+        privateKey,
+        encryptedData
+      );
+
+      const decoder = new TextDecoder();
+      const decryptedText = decoder.decode(decryptedData);
+      document.getElementById("decryptedText").textContent = decryptedText;
+    }
+
+    async function importKey(pemKey, isPrivate = false) {
+      const keyFormat = "pem";
+      const algorithm = {
+        name: "RSA-OAEP",
+        hash: "SHA-256"
+      };
+
+      const keyArrayBuffer = pemToArrayBuffer(pemKey);
+
+      return await window.crypto.subtle.importKey(
+        keyFormat, 
+        keyArrayBuffer, 
+        algorithm, 
+        false, 
+        isPrivate ? ["decrypt"] : ["encrypt"]
+      );
+    }
+
+    function arrayBufferToBase64(buffer) {
+      return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binaryString = atob(base64);
+      const length = binaryString.length;
+      const bytes = new Uint8Array(length);
+      for (let i = 0; i < length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    function pemToArrayBuffer(pem) {
+      const b64 = pem.replace(/-----BEGIN (.*)-----/, "").replace(/-----END (.*)-----/, "").replace(/\n/g, "");
+      return Uint8Array.from(atob(b64), c => c.charCodeAt(0)).buffer;
+    }
+  </script>
+</body>
+</html>
