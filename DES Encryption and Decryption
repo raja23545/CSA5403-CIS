@@ -1,0 +1,59 @@
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+
+public class DESExample {
+
+    // Method to encrypt the text
+    public static String encrypt(String plainText, String key) throws Exception {
+        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "DES");
+        Cipher cipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        byte[] encryptedText = cipher.doFinal(plainText.getBytes());
+        return Base64.getEncoder().encodeToString(encryptedText);
+    }
+
+    // Method to decrypt the text
+    public static String decrypt(String encryptedText, String key) throws Exception {
+        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "DES");
+        Cipher cipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        byte[] decodedText = Base64.getDecoder().decode(encryptedText);
+        byte[] decryptedText = cipher.doFinal(decodedText);
+        return new String(decryptedText);
+    }
+
+    // Method to generate a DES key
+    public static String generateDESKey() throws Exception {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
+        keyGenerator.init(56); // DES key size (56 bits)
+        SecretKey secretKey = keyGenerator.generateKey();
+        return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+    }
+
+    public static void main(String[] args) {
+        try {
+            String key = "12345678";  // Key must be 8 bytes for DES (56 bits)
+            String plainText = "Hello, this is a test!";
+
+            System.out.println("Original Text: " + plainText);
+
+            // Encrypting the text
+            String encryptedText = encrypt(plainText, key);
+            System.out.println("Encrypted Text: " + encryptedText);
+
+            // Decrypting the text
+            String decryptedText = decrypt(encryptedText, key);
+            System.out.println("Decrypted Text: " + decryptedText);
+            
+            // Example of generating a DES key
+            String generatedKey = generateDESKey();
+            System.out.println("Generated DES Key: " + generatedKey);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
