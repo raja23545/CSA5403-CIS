@@ -1,0 +1,35 @@
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
+public class DiffieHellman {
+    private static final BigInteger P = new BigInteger("23");  // Prime number (for simplicity)
+    private static final BigInteger G = new BigInteger("5");   // Generator (for simplicity)
+
+    public static BigInteger generatePrivateKey() {
+        SecureRandom random = new SecureRandom();
+        return new BigInteger(8, random);  // 8-bit private key
+    }
+
+    public static BigInteger generatePublicKey(BigInteger privateKey) {
+        return G.modPow(privateKey, P);  // Public Key = G^privateKey mod P
+    }
+
+    public static BigInteger generateSharedKey(BigInteger privateKey, BigInteger otherPartyPublicKey) {
+        return otherPartyPublicKey.modPow(privateKey, P);  // Shared Key = (otherPublicKey)^privateKey mod P
+    }
+
+    public static void main(String[] args) {
+        BigInteger privateKeyA = generatePrivateKey();
+        BigInteger publicKeyA = generatePublicKey(privateKeyA);
+
+        BigInteger privateKeyB = generatePrivateKey();
+        BigInteger publicKeyB = generatePublicKey(privateKeyB);
+
+        // Exchange public keys and generate shared key
+        BigInteger sharedKeyA = generateSharedKey(privateKeyA, publicKeyB);
+        BigInteger sharedKeyB = generateSharedKey(privateKeyB, publicKeyA);
+
+        System.out.println("Shared Key (A): " + sharedKeyA);
+        System.out.println("Shared Key (B): " + sharedKeyB);
+    }
+}
