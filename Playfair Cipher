@@ -1,0 +1,76 @@
+import java.util.*;
+
+public class PlayfairCipher {
+    private static String generateKeySquare(String key) {
+        StringBuilder keySquare = new StringBuilder();
+        key = key.toLowerCase().replaceAll("[^a-z]", "");
+        Set<Character> usedChars = new HashSet<>();
+        for (char c : key.toCharArray()) {
+            if (!usedChars.contains(c)) {
+                keySquare.append(c);
+                usedChars.add(c);
+            }
+        }
+        for (char c = 'a'; c <= 'z'; c++) {
+            if (!usedChars.contains(c)) {
+                keySquare.append(c);
+            }
+        }
+        return keySquare.toString();
+    }
+
+    private static String formatText(String text) {
+        text = text.toLowerCase().replaceAll("[^a-z]", "");
+        StringBuilder formattedText = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            formattedText.append(text.charAt(i));
+            if (i < text.length() - 1 && text.charAt(i) == text.charAt(i + 1)) {
+                formattedText.append('x');
+            }
+        }
+        if (formattedText.length() % 2 != 0) {
+            formattedText.append('x');
+        }
+        return formattedText.toString();
+    }
+
+    private static String[] getBigram(String text) {
+        String[] bigrams = new String[text.length() / 2];
+        for (int i = 0; i < text.length(); i += 2) {
+            bigrams[i / 2] = text.substring(i, i + 2);
+        }
+        return bigrams;
+    }
+
+    private static String encrypt(String plaintext, String key) {
+        String keySquare = generateKeySquare(key);
+        plaintext = formatText(plaintext);
+        String[] bigrams = getBigram(plaintext);
+        StringBuilder encryptedText = new StringBuilder();
+        for (String bigram : bigrams) {
+            int row1 = keySquare.indexOf(bigram.charAt(0)) / 5;
+            int col1 = keySquare.indexOf(bigram.charAt(0)) % 5;
+            int row2 = keySquare.indexOf(bigram.charAt(1)) / 5;
+            int col2 = keySquare.indexOf(bigram.charAt(1)) % 5;
+            
+            if (row1 == row2) {
+                encryptedText.append(keySquare.charAt(row1 * 5 + (col1 + 1) % 5));
+                encryptedText.append(keySquare.charAt(row2 * 5 + (col2 + 1) % 5));
+            } else if (col1 == col2) {
+                encryptedText.append(keySquare.charAt(((row1 + 1) % 5) * 5 + col1));
+                encryptedText.append(keySquare.charAt(((row2 + 1) % 5) * 5 + col2));
+            } else {
+                encryptedText.append(keySquare.charAt(row1 * 5 + col2));
+                encryptedText.append(keySquare.charAt(row2 * 5 + col1));
+            }
+        }
+        return encryptedText.toString();
+    }
+
+    public static void main(String[] args) {
+        String plaintext = "hello world";
+        String key = "keyword";
+        String encrypted = encrypt(plaintext, key);
+        System.out.println("Encrypted: " + encrypted);
+    }
+}
